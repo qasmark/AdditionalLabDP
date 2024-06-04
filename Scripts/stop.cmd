@@ -1,5 +1,5 @@
 taskkill /F /IM dotnet.exe
-rem не стал выключать каждый процесс по отдельности, решил выключить все одной командой
+rem I didn't shut down each process separately, I decided to shut them all down with one command
 
 FOR /f "tokens=*" %%i IN ('docker ps -q') DO docker stop %%i
-rem также выключиает все всключенные контейнеры в докере
+rem turns off all enabled containers in the docker

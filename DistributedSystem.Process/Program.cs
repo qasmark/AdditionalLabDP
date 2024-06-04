@@ -52,8 +52,8 @@ internal class Program
     private static void PublishEvent()
     {
         var e = CreateEvent();
-        var actionMessage = SerializeAction(e);
-        var messageBytes = Encoding.UTF8.GetBytes(actionMessage);
+        var eventMessage = SerializeEvent(e);
+        var messageBytes = Encoding.UTF8.GetBytes(eventMessage);
         _natsConnection.Publish("event", messageBytes);
     }
 
@@ -66,9 +66,9 @@ internal class Program
         };
     }
 
-    private static string SerializeAction(Event action)
+    private static string SerializeEvent(Event e)
     {
-        return JsonSerializer.Serialize(action);
+        return JsonSerializer.Serialize(e);
     }
 
     private static void ProcessUserInput()

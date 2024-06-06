@@ -9,30 +9,14 @@ namespace DistributedSystem.Logger;
 internal class Program
 {
     private static readonly IConnection _natsConnection = new ConnectionFactory().CreateConnection("localhost:4222");
-    private static Dictionary<string, List<int>> _processesTimeStamp = new Dictionary<string, List<int>>();
     private static IRepository _repository = new RedisRepository("localhost:6379");
     
     static void Main()
     {
         SubscribeToEvents();
-        
-        while (true)
-        {
-            try
-            {
-                Console.WriteLine("Usage: <stop>\nto save data and switch off the logger");
-                string keyStop = Console.ReadLine();
-                if (keyStop == "stop")
-                {   
-                    _repository.Save(_processesTimeStamp);
-                    break;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
-        }
+        Console.WriteLine("Logger is running. Press Ctrl+C to exit.");
+        // Keep the application running
+        Thread.Sleep(Timeout.Infinite);
     }
     
     private static void SubscribeToEvents()
@@ -40,7 +24,12 @@ internal class Program
         _natsConnection.SubscribeAsync("event", (sender, args) =>
         {
             var messageObject = DeserializeMessage(args.Message.Data);
-            _processesTimeStamp.Add(messageObject.Id, messageObject.ProcessesTimeStamp);
+            var id = messageObject.Id;
+            var processesTimeStamp = messageObject.ProcessesTimeStamp;
+                
+            _repository.Save(id, processesTimeStamp);  // Save in real-time
+
+            Console.WriteLine($"Event registered: {id} from process with timestamps {string.Join(", ", processesTimeStamp)}");
         });
     }
 

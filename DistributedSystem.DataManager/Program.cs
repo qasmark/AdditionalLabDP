@@ -8,7 +8,7 @@ internal class Program
 {
     private static readonly ConnectionMultiplexer _connection = ConnectionMultiplexer.Connect("localhost:6379");
     private static readonly IDatabase _db = _connection.GetDatabase();
-    
+
     static void Main() 
     {
         while (true)
@@ -19,68 +19,72 @@ internal class Program
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error occured: {ex.Message}");
+                Console.WriteLine($"Error occurred: {ex.Message}");
             }
         }
     }
+
     private static void ProcessInput()
     {
         List<string> past = new List<string>();
         List<string> future = new List<string>();
         List<string> parallel = new List<string>();
-        
-        Console.WriteLine("Usage: <session number> <process number> <event number>");
+    
+        Console.WriteLine("Usage: <process number> <event number>");
         string input = Console.ReadLine();
 
         string[] parts = input.Split(' ');
 
-        if (parts.Length != 3 
-            || !int.TryParse(parts[0], out int tempSessionId) 
-            || !int.TryParse(parts[1], out int tempProcessId) 
-            || !int.TryParse(parts[2], out int tempEventId))
+        if (parts.Length != 2 
+            || !int.TryParse(parts[0], out int tempProcessId) 
+            || !int.TryParse(parts[1], out int tempEventId))
         {
             throw new FormatException("Incorrect input format");
         }
 
-        string timesJson = _db.StringGet(tempSessionId.ToString());
+        string currentEventKey = $"e{tempProcessId}_{tempEventId}";
+        string timesJson = _db.StringGet(currentEventKey);
         if (string.IsNullOrEmpty(timesJson))
         {
-            throw new KeyNotFoundException("Session with the specified id not found");
+            throw new KeyNotFoundException("Event with the specified id not found");
         }
 
-        Dictionary<string, List<int>> times = JsonSerializer.Deserialize<Dictionary<string, List<int>>>(timesJson);
-
+        List<int> currentEventTimeStamp = JsonSerializer.Deserialize<List<int>>(timesJson);
         Event currE = new Event()
         {
-            ProcessesTimeStamp = times["e" + tempProcessId.ToString() + "_" + tempEventId.ToString()]
+            Id = currentEventKey,
+            ProcessesTimeStamp = currentEventTimeStamp
         };
 
-        foreach (var key in times)
+        var server = _connection.GetServer("localhost:6379");
+        foreach (var key in server.Keys())
         {
-            Event e = new()
+            string eventJson = _db.StringGet(key);
+            List<int> eventTimeStamp = JsonSerializer.Deserialize<List<int>>(eventJson);
+            Event e = new Event()
             {
-                ProcessesTimeStamp = key.Value
+                Id = key,
+                ProcessesTimeStamp = eventTimeStamp
             };
 
             if (e == currE) continue;
 
-            if (e < currE) 
+            if (e < currE)
             {
-                past.Add(key.Key);
+                past.Add(e.Id);
                 continue;
             }
 
-            if(currE <  e)
+            if (currE < e)
             {
-                future.Add(key.Key);
+                future.Add(e.Id);
                 continue;
             }
-            parallel.Add(key.Key);
+            parallel.Add(e.Id);
         }
 
         Console.WriteLine("past: " + string.Join(", ", past));
         Console.WriteLine("future: " + string.Join(", ", future));
         Console.WriteLine("parallel: " + string.Join(", ", parallel));
-
     }
 }

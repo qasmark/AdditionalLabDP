@@ -13,11 +13,9 @@ public class RedisRepository : IRepository
         _db = connection.GetDatabase();
     }
 
-    public void Save(Dictionary<string, List<int>> data)
+    public void Save(string id, List<int> processesTimeStamp)
     {
-        string id = ConnectionMultiplexer.Connect("localhost:6379")
-            .GetServer("localhost:6379").Keys(pattern: "*").Count().ToString();
-        string timesStr = JsonSerializer.Serialize(data);
-        _db.StringSetAsync(id, timesStr);
+        string timesStr = JsonSerializer.Serialize(processesTimeStamp);
+        _db.StringSet(id, timesStr);
     }
 }

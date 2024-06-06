@@ -396,3 +396,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/.idea/.idea.AdditionalLabDP.dir/.idea/.gitignore
+/DistributedSystem.DataManager/.idea/.idea.DistributedSystem.DataManager/.idea/.gitignore
+/.idea/.idea.AdditionalLabDP.dir/.idea/indexLayout.xml
+/DistributedSystem.DataManager/.idea/.idea.DistributedSystem.DataManager/.idea/indexLayout.xml
+/.idea/.idea.AdditionalLabDP.dir/.idea/vcs.xml
+/DistributedSystem.DataManager/.idea/.idea.DistributedSystem.DataManager/.idea/vcs.xml
